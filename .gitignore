@@ -1,0 +1,4 @@
+inputs/**
+.build/**
+*.exe
+*.pdb

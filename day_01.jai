@@ -17,6 +17,7 @@ int_compare :: (a: int, b: int) -> int {
 
 main :: () {
     input, success := read_entire_file("inputs/day_01.txt");
+    assert(success);
 
     left_column: [..] int;
     right_column: [..] int;

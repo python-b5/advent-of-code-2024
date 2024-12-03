@@ -28,7 +28,11 @@ main :: () {
 
         // The maximum instruction size is 12 (a mul() instruction with two
         // three-digit numbers).
-        instruction := slice(input, it, ifx it >= input.count - 12 then input.count - it else 12);
+        instruction := slice(
+            input,
+            it,
+            ifx it >= input.count - 12 then input.count - it else 12
+        );
 
         end_index := find_index_from_left(instruction, #char ")");
         if end_index == -1 {
@@ -37,7 +41,11 @@ main :: () {
 
         trimmed_instruction := slice(instruction, 0, end_index + 1);
         if slice(trimmed_instruction, 0, 4) == "mul(" {
-            numbers := split(slice(trimmed_instruction, 4, trimmed_instruction.count - 5), ",");
+            numbers := split(
+                slice(trimmed_instruction, 4, trimmed_instruction.count - 5),
+                ","
+            );
+
             if numbers.count == 2 {
                 valid := true;
                 for numbers {
@@ -56,9 +64,11 @@ main :: () {
                 }
 
                 if valid {
-                    result := string_to_int(numbers[0]) * string_to_int(numbers[1]);
-                    result_sum += result;
+                    result := (
+                        string_to_int(numbers[0]) * string_to_int(numbers[1])
+                    );
 
+                    result_sum += result;
                     if mul_enabled {
                         result_sum_conditional += result;
                     }

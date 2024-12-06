@@ -14,6 +14,10 @@ Vector2_Int :: struct {
     x, y: int;
 }
 
+// Maybe the guard doesn't have to be a struct, but it makes the program more
+// readable and doesn't have any performance impact. It's also possible
+// "direction" could be an enum, but then the simulation code would be a little
+// less clean...
 Guard :: struct {
     position, direction: Vector2_Int;
 }
@@ -23,27 +27,16 @@ operator == :: inline (a: Vector2_Int, b: Vector2_Int) -> bool {
     return a.x == b.x && a.y == b.y;
 }
 
-operator == :: inline (a: Guard, b: Guard) -> bool {
-    return a.position == b.position && a.direction == b.direction;
-}
-
-vector2_int_hash :: inline (vector: Vector2_Int) -> u32 {
-    return sdbm_hash(xx *vector, size_of(Vector2_Int));
-}
-
-guard_hash :: inline (guard: Guard) -> u32 {
-    return sdbm_hash(xx *guard, size_of(Guard));
-}
-
-Vector2_Int_Table :: Table(Vector2_Int, void, vector2_int_hash);
-Guard_Table :: Table(Guard, void, guard_hash);
+Vector2_Int_Table :: Table(Vector2_Int, void, (vector: Vector2_Int) -> u32 {
+    return inline sdbm_hash(xx *vector, size_of(Vector2_Int));
+});
 
 // This function behaves differently depending on which part of the puzzle it is
 // supposed to be solving. This is important to avoid unnecessarily wasting time
 // on recording the unique positions visited by the guard during part 2, which
 // slows the bruteforcing down considerably. While this procedure returns
 // multiple values (the set of unique positions, and whether the guard entered a
-// loop), the first one will always be an empty set if "part" is 2.
+// loop), the first one will always be an empty set during part 2.
 simulate_guard :: inline (
     map: [..][..] bool,
     width: int,
@@ -52,7 +45,14 @@ simulate_guard :: inline (
     part: int
 ) -> Vector2_Int_Table, bool {
     unique_positions: Vector2_Int_Table;
-    previous_guard_states: Guard_Table;
+
+    // This is _much_ faster than using a set. I'm keeping this as a flat array
+    // to avoid unnecessary allocations - I tried using a flat array for the map
+    // itself too, but the overhead of calculating the index constantly seemed
+    // to slow the program down very slightly (by milliseconds - I'm splitting
+    // hairs here!).
+    previous_guard_states := NewArray(width * height, [4] bool);
+    defer array_free(previous_guard_states);
 
     guard := initial_guard;
     while true {
@@ -64,10 +64,18 @@ simulate_guard :: inline (
                 table_add(*unique_positions, guard.position, #run {});
             }
         } else {
-            if table_contains(*previous_guard_states, guard) {
+            position_index := guard.position.x * width + guard.position.y;
+
+            direction_index: int;
+            if      guard.direction == .{1, 0}  direction_index = 0;
+            else if guard.direction == .{0, 1}  direction_index = 1;
+            else if guard.direction == .{-1, 0} direction_index = 2;
+            else if guard.direction == .{0, -1} direction_index = 3;
+
+            if previous_guard_states[position_index][direction_index] {
                 return unique_positions, true;
             } else {
-                table_add(*previous_guard_states, guard, #run {});
+                previous_guard_states[position_index][direction_index] = true;
             }
         }
 
@@ -122,7 +130,6 @@ main :: () {
     unique_positions, _ := simulate_guard(map, width, height, guard, 1);
     print("Part 1: %\n", unique_positions.count);
 
-    // There has to be a better way to do this. This takes forever.
     loop_causing_obstructions := 0;
     for unique_positions {
         map[it_index.y][it_index.x] = true;

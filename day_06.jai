@@ -27,7 +27,7 @@ operator == :: inline (a: Vector2_Int, b: Vector2_Int) -> bool {
     return a.x == b.x && a.y == b.y;
 }
 
-Vector2_Int_Table :: Table(Vector2_Int, void, (vector: Vector2_Int) -> u32 {
+Vector2_Int_Set :: Table(Vector2_Int, void, (vector: Vector2_Int) -> u32 {
     return inline sdbm_hash(xx *vector, size_of(Vector2_Int));
 });
 
@@ -43,8 +43,8 @@ simulate_guard :: inline (
     height: int,
     initial_guard: Guard,
     part: int
-) -> Vector2_Int_Table, bool {
-    unique_positions: Vector2_Int_Table;
+) -> Vector2_Int_Set, bool {
+    unique_positions: Vector2_Int_Set;
 
     // This is _much_ faster than using a set. I'm keeping this as a flat array
     // to avoid unnecessary allocations - I tried using a flat array for the map

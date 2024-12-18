@@ -116,18 +116,18 @@ main :: () {
     print("Part 1: %\n", builder_to_string(*builder));
 
     // Every three bits given to the program add another number to the output.
-    // Because of this, we can bruteforce three bits at a time. We're using DFS
+    // Because of this, we can bruteforce three bits at a time. We're using BFS
     // here instead of just bruteforcing the groups of bits in sequence because
     // occasionally we may run into a false lead.
-    stack: [..] State;
-    array_add(*stack, .{0, 0});
-    defer array_free(stack);
+    queue: [..] State;
+    array_add(*queue, .{0, 0});
+    defer array_free(queue);
 
-    lowest_solution := -1;
-    while stack.count {
-        current := pop(*stack);
+    while queue.count {
+        current := queue[0];
+        array_ordered_remove_by_index(*queue, 0);
+
         target := program[program.count - current.iteration - 1];
-
         for 0..7 {
             new_register_a := current.register_a << 3 | it;
             registers := Registers.{new_register_a, 0, 0};
@@ -137,18 +137,12 @@ main :: () {
 
             if output[0] == target {
                 if current.iteration == program.count - 1 {
-                    if
-                        new_register_a < lowest_solution
-                        || lowest_solution == -1
-                    {
-                        lowest_solution = new_register_a;
-                    }
+                    print("Part 2: %\n", new_register_a);
+                    return;
                 } else {
-                    array_add(*stack, .{registers.a, current.iteration + 1});
+                    array_add(*queue, .{registers.a, current.iteration + 1});
                 }
             }
         }
     }
-
-    print("Part 2: %\n", lowest_solution);
 }

@@ -49,7 +49,7 @@ main :: () {
     // I didn't want this to be global, so I'm passing a pointer to it into the
     // get_solutions() procedure.
     known_solutions: Table(string, int);
-    deinit(*known_solutions);
+    defer deinit(*known_solutions);
 
     possible_designs := 0;
     total_solutions := 0;

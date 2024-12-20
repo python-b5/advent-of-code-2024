@@ -39,7 +39,7 @@ fill_distances_array :: (
     width: int,
     start: Vector2_Int,
     distances: [] int
-) -> int {
+) {
     queue: [..] *Node;
     defer array_free(queue);
 
@@ -76,8 +76,6 @@ fill_distances_array :: (
             }
         }
     }
-
-    return -1;
 }
 
 find_efficient_cheats :: (
